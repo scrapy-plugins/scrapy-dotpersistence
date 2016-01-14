@@ -27,6 +27,7 @@ Enable extension through `settings.py`::
 
 Configure the exension through `settings.py`::
 
+    DOTSCRAPY_DIR = '/dir/.scrapy'
     ADDONS_AWS_ACCESS_KEY_ID = "ABC"
     ADDONS_AWS_SECRET_ACCESS_KEY = "DEF"
     ADDONS_AWS_USERNAME = "username"

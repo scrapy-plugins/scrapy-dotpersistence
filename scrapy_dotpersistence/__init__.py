@@ -1,6 +1,6 @@
 import os
 import logging
-from subprocess import Popen, PIPE, STDOUT
+import subprocess
 from scrapy.exceptions import NotConfigured
 from scrapy import signals
 
@@ -29,7 +29,8 @@ class DotScrapyPersistence(object):
         self._bucket_folder = crawler.settings.get('ADDONS_AWS_USERNAME', '')
         self._projectid = os.environ['SCRAPY_PROJECT_ID']
         self._spider = os.environ['SCRAPY_SPIDER']
-        self._localpath = os.path.join(os.getenv('HOME'), '.scrapy/')
+        self._localpath = crawler.settings.get(
+            'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
             'HOME': os.getenv('HOME'),
             'AWS_ACCESS_KEY_ID': self.AWS_ACCESS_KEY_ID,
@@ -65,7 +66,9 @@ class DotScrapyPersistence(object):
         self._call(cmd)
 
     def _call(self, cmd):
-        p = Popen(cmd, env=self._env, stdout=PIPE, stderr=STDOUT)
+        p = subprocess.Popen(cmd, env=self._env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
         stdout, _ = p.communicate()
         retcode = p.wait()
         if retcode != 0:
