@@ -56,6 +56,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         assert self.instance._localpath == '/tmp/.scrapy'
         assert self.instance._env == {
             'HOME': '/home/user',
+            'PATH': os.environ['PATH'],
             'AWS_ACCESS_KEY_ID': 'access-key',
             'AWS_SECRET_ACCESS_KEY': 'secret-key',
         }
@@ -101,6 +102,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         self.mocked_popen.assert_called_with(
             ['test', 'cmd'], stderr=-2, stdout=-1,
             env={'HOME': '/home/user',
+                 'PATH': os.environ['PATH'],
                  'AWS_ACCESS_KEY_ID': 'access-key',
                  'AWS_SECRET_ACCESS_KEY': 'secret-key'})
         self.mocked_proc.communicate.assert_called_with()
