@@ -19,7 +19,6 @@ class DotScrapyPersisitenceTestCase(TestCase):
         crawler_mock = mock.Mock()
         crawler_mock.settings = Settings({
             'DOTSCRAPY_ENABLED': True,
-            'DOTSCRAPY_DIR': '/tmp/.scrapy',
             'ADDONS_S3_BUCKET': 'test-bucket',
             'ADDONS_AWS_ACCESS_KEY_ID': 'access-key',
             'ADDONS_AWS_SECRET_ACCESS_KEY': 'secret-key',
@@ -29,7 +28,8 @@ class DotScrapyPersisitenceTestCase(TestCase):
             'SCRAPY_JOB': '123/45/67',
             'SCRAPY_PROJECT_ID': '123',
             'SCRAPY_SPIDER': 'testspider',
-            'HOME': '/home/user'
+            'HOME': '/home/user',
+            'DOTSCRAPY_DIR': '/tmp/.scrapy',
         })
         self.patch.start()
         self.instance = DotScrapyPersistence.from_crawler(crawler_mock)

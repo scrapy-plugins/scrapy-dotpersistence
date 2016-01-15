@@ -27,8 +27,11 @@ Enable extension through `settings.py`::
 
 Configure the exension through `settings.py`::
 
-    DOTSCRAPY_DIR = '/dir/.scrapy'
     ADDONS_AWS_ACCESS_KEY_ID = "ABC"
     ADDONS_AWS_SECRET_ACCESS_KEY = "DEF"
     ADDONS_AWS_USERNAME = "username"
     ADDONS_S3_BUCKET = "test-bucket-name"
+
+You can change a dotpersistence folder path with environ::
+
+    export DOTSCRAPY_DIR='/tmp/.scrapy'

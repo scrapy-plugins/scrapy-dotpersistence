@@ -29,7 +29,7 @@ class DotScrapyPersistence(object):
         self._bucket_folder = crawler.settings.get('ADDONS_AWS_USERNAME', '')
         self._projectid = os.environ['SCRAPY_PROJECT_ID']
         self._spider = os.environ['SCRAPY_SPIDER']
-        self._localpath = crawler.settings.get(
+        self._localpath = os.environ.get(
             'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
             'HOME': os.getenv('HOME'),
