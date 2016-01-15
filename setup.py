@@ -8,8 +8,7 @@ setup(
     long_description=open('README.rst').read(),
     author='Scrapy developers',
     license='BSD',
-    packages=find_packages(exclude=('tests', 'tests.*')),
-    include_package_data=True,
+    py_modules=['scrapy_dotpersistence'],
     zip_safe=False,
     author_email='opensource@scrapinghub.com',
     platforms=['Any'],
@@ -21,5 +20,5 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
     ],
-    requires=['scrapy (>=1.0.3)', 's3cmd (>=1.5.2)'],
+    requires=['Scrapy (>=1.0.3)', 's3cmd (>=1.5.2)'],
 )
