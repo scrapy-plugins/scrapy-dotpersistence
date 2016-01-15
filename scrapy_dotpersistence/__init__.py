@@ -33,6 +33,7 @@ class DotScrapyPersistence(object):
             'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
             'HOME': os.getenv('HOME'),
+            'PATH': os.getenv('PATH'),
             'AWS_ACCESS_KEY_ID': self.AWS_ACCESS_KEY_ID,
             'AWS_SECRET_ACCESS_KEY': self.AWS_SECRET_ACCESS_KEY
         }
