@@ -56,13 +56,13 @@ class DotScrapyPersistence(object):
         if not os.path.isdir(self._localpath):
             os.makedirs(self._localpath)
 
-        cmd = ['s3cmd', 'sync', self._s3path, self._localpath]
+        cmd = ['s3cmd', 'sync', '--no-preserve', self._s3path, self._localpath]
         self._call(cmd)
 
     def _store_data(self):
         # check for reason status here?
         logger.info('Syncing .scrapy directory to %s' % self._s3path)
-        cmd = ['s3cmd', 'sync', '--delete-removed',
+        cmd = ['s3cmd', 'sync', '--no-preserve', '--delete-removed',
                self._localpath, self._s3path]
         self._call(cmd)
 
