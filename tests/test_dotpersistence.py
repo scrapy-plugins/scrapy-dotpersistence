@@ -75,7 +75,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         self.assertEqual(self.instance._s3path, s3_path1)
         assert os.path.exists(self.instance._localpath)
         mocked_call.assert_called_with(
-            ['s3cmd', 'sync', '--no-preserve', s3_path1, '/tmp/.scrapy'])
+            ['aws', 's3', 'sync', s3_path1, '/tmp/.scrapy'])
 
         # test other s3_path w/o bucket_folder
         mocked_call.reset()
@@ -84,15 +84,14 @@ class DotScrapyPersisitenceTestCase(TestCase):
         s3_path2 = 's3://test-bucket/123/dot-scrapy/testspider/'
         self.assertEqual(self.instance._s3path, s3_path2)
         mocked_call.assert_called_with(
-            ['s3cmd', 'sync', '--no-preserve', s3_path2, '/tmp/.scrapy'])
+            ['aws', 's3', 'sync', s3_path2, '/tmp/.scrapy'])
 
     def test_store_data(self):
         mocked_call = mock.Mock()
         self.instance._call = mocked_call
         self.instance._store_data()
         mocked_call.assert_called_with(
-            ['s3cmd', 'sync', '--no-preserve',
-             '--delete-removed', '/tmp/.scrapy',
+            ['aws', 's3', 'sync', '--delete', '/tmp/.scrapy',
              's3://test-bucket/test-user/123/dot-scrapy/testspider/'])
 
     def test_call(self):
