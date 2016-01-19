@@ -73,7 +73,6 @@ class DotScrapyPersisitenceTestCase(TestCase):
         self.instance._load_data()
         s3_path1 = 's3://test-bucket/test-user/123/dot-scrapy/testspider/'
         self.assertEqual(self.instance._s3path, s3_path1)
-        assert os.path.exists(self.instance._localpath)
         mocked_call.assert_called_with(
             ['aws', 's3', 'sync', s3_path1, '/tmp/.scrapy'])
 
