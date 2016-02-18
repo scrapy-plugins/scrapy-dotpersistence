@@ -62,7 +62,9 @@ class DotScrapyPersistence(object):
     def _store_data(self):
         # check for reason status here?
         logger.info('Syncing .scrapy directory to %s' % self._s3path)
-        cmd = ['s3cmd', 'sync', '--no-preserve', '--delete-removed',
+        cmd = ['s3cmd', 'sync', '--no-preserve',
+               '--multipart-chunk-size-mb=5120',
+               '--delete-removed',
                self._localpath, self._s3path]
         self._call(cmd)
 
