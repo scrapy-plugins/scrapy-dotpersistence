@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='scrapy-dotpersistence',
-    version='0.1.0',
+    version='0.1.1',
     url='https://github.com/scrapy-plugins/scrapy-dotpersistence',
     description='Scrapy extension to sync `.scrapy` folder to an S3 bucket',
     long_description=open('README.rst').read(),
