@@ -92,6 +92,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         self.instance._store_data()
         mocked_call.assert_called_with(
             ['s3cmd', 'sync', '--no-preserve',
+             '--multipart-chunk-size-mb=5120',
              '--delete-removed', '/tmp/.scrapy',
              's3://test-bucket/test-user/123/dot-scrapy/testspider/'])
 
