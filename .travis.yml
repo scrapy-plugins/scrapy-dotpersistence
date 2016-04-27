@@ -4,7 +4,7 @@ branches:
   only:
     - master
     - /^\d\.\d+$/
-    - /v^\d\.\d+\.\d+(rc\d+|dev\d+)?$/
+    - /^v\d\.\d+\.\d+(rc\d+|dev\d+)?$/
 env:
   - TOXENV=py27
 install:
