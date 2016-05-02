@@ -37,8 +37,8 @@ class DotScrapyPersistence(object):
             'AWS_ACCESS_KEY_ID': self.AWS_ACCESS_KEY_ID,
             'AWS_SECRET_ACCESS_KEY': self.AWS_SECRET_ACCESS_KEY
         }
-        crawler.signals.connect(self._store_data, signals.engine_stopped)
         self._load_data()
+        crawler.signals.connect(self._store_data, signals.engine_stopped)
 
     def _load_data(self):
         if self._bucket_folder:
