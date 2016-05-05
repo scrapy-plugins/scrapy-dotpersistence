@@ -20,5 +20,8 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
     ],
-    requires=['Scrapy (>=1.0.3)', 's3cmd (>=1.5.2)'],
+    install_requires=[
+	'Scrapy>=1.0.3',
+	's3cmd>=1.5.2',
+    ],
 )
