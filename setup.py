@@ -21,7 +21,7 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     install_requires=[
-	'Scrapy>=1.0.3',
-	's3cmd>=1.6.0',
+	    'Scrapy>=1.0.3',
+	    'awscli>=1.10.51',
     ],
 )

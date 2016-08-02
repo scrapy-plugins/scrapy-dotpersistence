@@ -51,20 +51,13 @@ class DotScrapyPersistence(object):
                 self._bucket, self._projectid, self._spider
             )
         logger.info('Syncing .scrapy directory from %s' % self._s3path)
-        # pre-create dest dir as non-existent destination is treated as file
-        # by s3cmd (1.1.0)
-        if not os.path.isdir(self._localpath):
-            os.makedirs(self._localpath)
-
-        cmd = ['s3cmd', 'sync', '--no-preserve', self._s3path, self._localpath]
+        cmd = ['aws', 's3', 'sync', self._s3path, self._localpath]
         self._call(cmd)
 
     def _store_data(self):
         # check for reason status here?
         logger.info('Syncing .scrapy directory to %s' % self._s3path)
-        cmd = ['s3cmd', 'sync', '--no-preserve',
-               '--multipart-chunk-size-mb=5120',
-               '--delete-removed',
+        cmd = ['aws', 's3', 'sync', '--delete',
                self._localpath, self._s3path]
         self._call(cmd)
 
