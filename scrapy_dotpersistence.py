@@ -26,9 +26,9 @@ class DotScrapyPersistence(object):
         self.AWS_SECRET_ACCESS_KEY = crawler.settings.get(
             'ADDONS_AWS_SECRET_ACCESS_KEY')
         self._bucket = bucket
-        self._bucket_folder = crawler.settings.get('ADDONS_AWS_USERNAME', '')
+        self._aws_username = crawler.settings.get('ADDONS_AWS_USERNAME')
         self._projectid = os.environ.get('SCRAPY_PROJECT_ID')
-        self._spider = os.environ.get('SCRAPY_SPIDER')
+        self._spider = os.environ.get('SCRAPY_SPIDER', 'test_spider')
         self._localpath = os.environ.get(
             'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
@@ -42,14 +42,10 @@ class DotScrapyPersistence(object):
 
     @property
     def _s3path(self):
-        if self._bucket_folder:
-            return 's3://{0}/{1}/{2}/dot-scrapy/{3}/'.format(
-                self._bucket, self._bucket_folder, self._projectid,
-                self._spider
-            )
-        else:
-            return 's3://{0}/{1}/dot-scrapy/{2}/'.format(
-                self._bucket, self._projectid, self._spider)
+        path = "/".join(
+            filter(None, [self._bucket, self._aws_username, self._projectid])
+        )
+        return "s3://{0}/dot-scrapy/{1}/".format(path, self._spider)
 
     def _load_data(self):
         logger.info('Syncing .scrapy directory from %s' % self._s3path)
