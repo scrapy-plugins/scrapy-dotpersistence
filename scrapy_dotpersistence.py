@@ -40,16 +40,18 @@ class DotScrapyPersistence(object):
         self._load_data()
         crawler.signals.connect(self._store_data, signals.engine_stopped)
 
-    def _load_data(self):
+    @property
+    def _s3path(self):
         if self._bucket_folder:
-            self._s3path = 's3://{0}/{1}/{2}/dot-scrapy/{3}/'.format(
+            return 's3://{0}/{1}/{2}/dot-scrapy/{3}/'.format(
                 self._bucket, self._bucket_folder, self._projectid,
                 self._spider
             )
         else:
-            self._s3path = 's3://{0}/{1}/dot-scrapy/{2}/'.format(
-                self._bucket, self._projectid, self._spider
-            )
+            return 's3://{0}/{1}/dot-scrapy/{2}/'.format(
+                self._bucket, self._projectid, self._spider)
+
+    def _load_data(self):
         logger.info('Syncing .scrapy directory from %s' % self._s3path)
         cmd = ['aws', 's3', 'sync', self._s3path, self._localpath]
         self._call(cmd)

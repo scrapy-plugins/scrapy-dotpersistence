@@ -114,14 +114,18 @@ class DotScrapyPersisitenceTestCase(TestCase):
         self.patch.stop()
 
 
-@pytest.mark.parametrize("setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"])
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
 def test_extension_not_enabled(setting_name):
     crawler = get_crawler(settings_dict={setting_name: False})
     with pytest.raises(NotConfigured) as excinfo:
         extension = DotScrapyPersistence.from_crawler(crawler)
 
 
-@pytest.mark.parametrize("setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"])
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
 def test_extension_enabled(setting_name, mocker):
     mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
 
@@ -130,3 +134,31 @@ def test_extension_enabled(setting_name, mocker):
         extension = DotScrapyPersistence.from_crawler(crawler)
     except NotConfigured as excinfo:
         pytest.fail(excinfo)
+
+
+def test_s3path_in_scrapy_cloud_without_aws_username(mocker, monkeypatch):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+    monkeypatch.setenv("SCRAPY_PROJECT_ID", "123")
+    monkeypatch.setenv("SCRAPY_SPIDER", "test_spider")
+    crawler = get_crawler(
+        settings_dict={"DOTSCRAPY_ENABLED": True, "ADDONS_S3_BUCKET": "s3_bucket"}
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/123/dot-scrapy/test_spider/"
+
+
+def test_s3path_in_scrapy_cloud_with_aws_username(mocker, monkeypatch):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+    monkeypatch.setenv("SCRAPY_PROJECT_ID", "123")
+    monkeypatch.setenv("SCRAPY_SPIDER", "test_spider")
+    crawler = get_crawler(
+        settings_dict={
+            "DOTSCRAPY_ENABLED": True,
+            "ADDONS_S3_BUCKET": "s3_bucket",
+            "ADDONS_AWS_USERNAME": "username",
+        }
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/username/123/dot-scrapy/test_spider/"
