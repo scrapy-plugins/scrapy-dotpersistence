@@ -1,8 +1,11 @@
 import os
-import mock
 from unittest import TestCase
-from scrapy.settings import Settings
+
+import mock
+import pytest
 from scrapy.exceptions import NotConfigured
+from scrapy.settings import Settings
+from scrapy.utils.test import get_crawler
 
 from scrapy_dotpersistence import DotScrapyPersistence
 
@@ -109,3 +112,21 @@ class DotScrapyPersisitenceTestCase(TestCase):
 
     def tearDown(self):
         self.patch.stop()
+
+
+@pytest.mark.parametrize("setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"])
+def test_extension_not_enabled(setting_name):
+    crawler = get_crawler(settings_dict={setting_name: False})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+
+
+@pytest.mark.parametrize("setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"])
+def test_extension_enabled(setting_name, mocker):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_crawler(settings_dict={setting_name: True})
+    try:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+    except NotConfigured as excinfo:
+        pytest.fail(excinfo)
