@@ -15,7 +15,7 @@ class DotScrapyPersistence(object):
         settings = crawler.settings
         enabled = (settings.getbool('DOTSCRAPY_ENABLED') or
                    settings.get('DOTSCRAPYPERSISTENCE_ENABLED'))
-        if not enabled or 'SCRAPY_JOB' not in os.environ:
+        if not enabled:
             raise NotConfigured
         bucket = settings.get('ADDONS_S3_BUCKET')
         return cls(crawler, bucket)
@@ -27,8 +27,8 @@ class DotScrapyPersistence(object):
             'ADDONS_AWS_SECRET_ACCESS_KEY')
         self._bucket = bucket
         self._bucket_folder = crawler.settings.get('ADDONS_AWS_USERNAME', '')
-        self._projectid = os.environ['SCRAPY_PROJECT_ID']
-        self._spider = os.environ['SCRAPY_SPIDER']
+        self._projectid = os.environ.get('SCRAPY_PROJECT_ID')
+        self._spider = os.environ.get('SCRAPY_SPIDER')
         self._localpath = os.environ.get(
             'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
