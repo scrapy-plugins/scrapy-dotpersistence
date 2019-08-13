@@ -112,6 +112,11 @@ class DotScrapyPersisitenceTestCase(TestCase):
 
     def tearDown(self):
         self.patch.stop()
+        del os.environ['SCRAPY_JOB']
+        del os.environ['SCRAPY_PROJECT_ID']
+        del os.environ['SCRAPY_SPIDER']
+        del os.environ['HOME']
+        del os.environ['DOTSCRAPY_DIR']
 
 
 @pytest.mark.parametrize(
