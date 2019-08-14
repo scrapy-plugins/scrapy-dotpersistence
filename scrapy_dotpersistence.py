@@ -15,9 +15,13 @@ class DotScrapyPersistence(object):
         settings = crawler.settings
         enabled = (settings.getbool('DOTSCRAPY_ENABLED') or
                    settings.get('DOTSCRAPYPERSISTENCE_ENABLED'))
-        if not enabled or 'SCRAPY_JOB' not in os.environ:
+        if not enabled:
             raise NotConfigured
+
         bucket = settings.get('ADDONS_S3_BUCKET')
+        if bucket is None:
+            raise NotConfigured("ADDONS_S3_BUCKET is required")
+
         return cls(crawler, bucket)
 
     def __init__(self, crawler, bucket):
@@ -26,9 +30,9 @@ class DotScrapyPersistence(object):
         self.AWS_SECRET_ACCESS_KEY = crawler.settings.get(
             'ADDONS_AWS_SECRET_ACCESS_KEY')
         self._bucket = bucket
-        self._bucket_folder = crawler.settings.get('ADDONS_AWS_USERNAME', '')
-        self._projectid = os.environ['SCRAPY_PROJECT_ID']
-        self._spider = os.environ['SCRAPY_SPIDER']
+        self._aws_username = crawler.settings.get('ADDONS_AWS_USERNAME')
+        self._projectid = os.environ.get('SCRAPY_PROJECT_ID')
+        self._spider = os.environ.get('SCRAPY_SPIDER', crawler.spider.name)
         self._localpath = os.environ.get(
             'DOTSCRAPY_DIR', os.path.join(os.getcwd(), '.scrapy/'))
         self._env = {
@@ -40,16 +44,14 @@ class DotScrapyPersistence(object):
         self._load_data()
         crawler.signals.connect(self._store_data, signals.engine_stopped)
 
+    @property
+    def _s3path(self):
+        path = "/".join(
+            filter(None, [self._bucket, self._aws_username, self._projectid])
+        )
+        return "s3://{0}/dot-scrapy/{1}/".format(path, self._spider)
+
     def _load_data(self):
-        if self._bucket_folder:
-            self._s3path = 's3://{0}/{1}/{2}/dot-scrapy/{3}/'.format(
-                self._bucket, self._bucket_folder, self._projectid,
-                self._spider
-            )
-        else:
-            self._s3path = 's3://{0}/{1}/dot-scrapy/{2}/'.format(
-                self._bucket, self._projectid, self._spider
-            )
         logger.info('Syncing .scrapy directory from %s' % self._s3path)
         cmd = ['aws', 's3', 'sync', self._s3path, self._localpath]
         self._call(cmd)

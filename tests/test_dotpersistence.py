@@ -1,8 +1,10 @@
 import os
-import mock
 from unittest import TestCase
-from scrapy.settings import Settings
+
+import mock
+import pytest
 from scrapy.exceptions import NotConfigured
+from scrapy.settings import Settings
 
 from scrapy_dotpersistence import DotScrapyPersistence
 
@@ -45,12 +47,12 @@ class DotScrapyPersisitenceTestCase(TestCase):
         crawler_mock.settings.set('ADDONS_S3_BUCKET', 's3-test-bucket')
         instance = DotScrapyPersistence.from_crawler(crawler_mock)
         assert isinstance(instance, DotScrapyPersistence)
-    
+
     def test_init(self):
         assert self.instance.AWS_ACCESS_KEY_ID == 'access-key'
         assert self.instance.AWS_SECRET_ACCESS_KEY == 'secret-key'
         assert self.instance._bucket == 'test-bucket'
-        assert self.instance._bucket_folder == 'test-user'
+        assert self.instance._aws_username == 'test-user'
         assert self.instance._projectid == '123'
         assert self.instance._spider == 'testspider'
         assert self.instance._localpath == '/tmp/.scrapy'
@@ -78,7 +80,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
 
         # test other s3_path w/o bucket_folder
         mocked_call.reset()
-        self.instance._bucket_folder = None
+        self.instance._aws_username = None
         self.instance._load_data()
         s3_path2 = 's3://test-bucket/123/dot-scrapy/testspider/'
         self.assertEqual(self.instance._s3path, s3_path2)
@@ -109,3 +111,105 @@ class DotScrapyPersisitenceTestCase(TestCase):
 
     def tearDown(self):
         self.patch.stop()
+        del os.environ['SCRAPY_JOB']
+        del os.environ['SCRAPY_PROJECT_ID']
+        del os.environ['SCRAPY_SPIDER']
+        del os.environ['HOME']
+        del os.environ['DOTSCRAPY_DIR']
+
+
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
+def test_extension_not_enabled_without_s3_bucket_set(setting_name, get_test_crawler):
+    crawler = get_test_crawler(settings_dict={setting_name: False})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+
+
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
+def test_extension_not_enabled_with_s3_bucket_set(setting_name, get_test_crawler):
+    crawler = get_test_crawler(settings_dict={setting_name: False, "ADDONS_S3_BUCKET": "s3_bucket"})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+
+
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
+def test_extension_enabled(setting_name, mocker, get_test_crawler):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_test_crawler(settings_dict={setting_name: True, "ADDONS_S3_BUCKET": "s3_bucket"})
+    try:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+    except NotConfigured as excinfo:
+        pytest.fail(excinfo)
+
+
+def test_aws_bucket_required(mocker, get_test_crawler):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_test_crawler(settings_dict={"DOTSCRAPY_ENABLED": True})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+
+
+def test_s3path_in_scrapy_cloud_without_aws_username(
+    mocker, monkeypatch, get_test_crawler
+):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+    monkeypatch.setenv("SCRAPY_PROJECT_ID", "123")
+    monkeypatch.setenv("SCRAPY_SPIDER", "test_spider")
+    crawler = get_test_crawler(
+        settings_dict={"DOTSCRAPY_ENABLED": True, "ADDONS_S3_BUCKET": "s3_bucket"}
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/123/dot-scrapy/test_spider/"
+
+
+def test_s3path_in_scrapy_cloud_with_aws_username(
+    mocker, monkeypatch, get_test_crawler
+):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+    monkeypatch.setenv("SCRAPY_PROJECT_ID", "123")
+    monkeypatch.setenv("SCRAPY_SPIDER", "test_spider")
+    crawler = get_test_crawler(
+        settings_dict={
+            "DOTSCRAPY_ENABLED": True,
+            "ADDONS_S3_BUCKET": "s3_bucket",
+            "ADDONS_AWS_USERNAME": "username",
+        }
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/username/123/dot-scrapy/test_spider/"
+
+
+def test_s3path_running_locally_without_aws_username(mocker, get_test_crawler):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_test_crawler(
+        settings_dict={"DOTSCRAPY_ENABLED": True, "ADDONS_S3_BUCKET": "s3_bucket"}
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/dot-scrapy/test_spider/"
+
+
+def test_s3path_running_locally_with_aws_username(mocker, get_test_crawler):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_test_crawler(
+        settings_dict={
+            "DOTSCRAPY_ENABLED": True,
+            "ADDONS_S3_BUCKET": "s3_bucket",
+            "ADDONS_AWS_USERNAME": "username",
+        }
+    )
+    extension = DotScrapyPersistence.from_crawler(crawler)
+
+    assert extension._s3path == "s3://s3_bucket/username/dot-scrapy/test_spider/"
