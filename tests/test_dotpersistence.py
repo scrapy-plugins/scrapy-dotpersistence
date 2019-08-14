@@ -47,7 +47,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         crawler_mock.settings.set('ADDONS_S3_BUCKET', 's3-test-bucket')
         instance = DotScrapyPersistence.from_crawler(crawler_mock)
         assert isinstance(instance, DotScrapyPersistence)
-    
+
     def test_init(self):
         assert self.instance.AWS_ACCESS_KEY_ID == 'access-key'
         assert self.instance.AWS_SECRET_ACCESS_KEY == 'secret-key'
@@ -121,8 +121,17 @@ class DotScrapyPersisitenceTestCase(TestCase):
 @pytest.mark.parametrize(
     "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
 )
-def test_extension_not_enabled(setting_name, get_test_crawler):
+def test_extension_not_enabled_without_s3_bucket_set(setting_name, get_test_crawler):
     crawler = get_test_crawler(settings_dict={setting_name: False})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
+
+
+@pytest.mark.parametrize(
+    "setting_name", ["DOTSCRAPY_ENABLED", "DOTSCRAPYPERSISTENCE_ENABLED"]
+)
+def test_extension_not_enabled_with_s3_bucket_set(setting_name, get_test_crawler):
+    crawler = get_test_crawler(settings_dict={setting_name: False, "ADDONS_S3_BUCKET": "s3_bucket"})
     with pytest.raises(NotConfigured) as excinfo:
         extension = DotScrapyPersistence.from_crawler(crawler)
 
@@ -133,11 +142,19 @@ def test_extension_not_enabled(setting_name, get_test_crawler):
 def test_extension_enabled(setting_name, mocker, get_test_crawler):
     mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
 
-    crawler = get_test_crawler(settings_dict={setting_name: True})
+    crawler = get_test_crawler(settings_dict={setting_name: True, "ADDONS_S3_BUCKET": "s3_bucket"})
     try:
         extension = DotScrapyPersistence.from_crawler(crawler)
     except NotConfigured as excinfo:
         pytest.fail(excinfo)
+
+
+def test_aws_bucket_required(mocker, get_test_crawler):
+    mocker.patch.object(DotScrapyPersistence, "_load_data", autospec=True)
+
+    crawler = get_test_crawler(settings_dict={"DOTSCRAPY_ENABLED": True})
+    with pytest.raises(NotConfigured) as excinfo:
+        extension = DotScrapyPersistence.from_crawler(crawler)
 
 
 def test_s3path_in_scrapy_cloud_without_aws_username(

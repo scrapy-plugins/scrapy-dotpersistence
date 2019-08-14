@@ -17,7 +17,11 @@ class DotScrapyPersistence(object):
                    settings.get('DOTSCRAPYPERSISTENCE_ENABLED'))
         if not enabled:
             raise NotConfigured
+
         bucket = settings.get('ADDONS_S3_BUCKET')
+        if bucket is None:
+            raise NotConfigured("ADDONS_S3_BUCKET is required")
+
         return cls(crawler, bucket)
 
     def __init__(self, crawler, bucket):
