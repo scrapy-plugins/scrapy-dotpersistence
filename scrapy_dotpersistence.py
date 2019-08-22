@@ -22,14 +22,21 @@ class DotScrapyPersistence(object):
         if bucket is None:
             raise NotConfigured("ADDONS_S3_BUCKET is required")
 
-        return cls(crawler, bucket)
+        aws_access_key_id = settings.get('ADDONS_AWS_ACCESS_KEY_ID')
+        if aws_access_key_id is None:
+            raise NotConfigured("ADDONS_AWS_ACCESS_KEY_ID is required")
 
-    def __init__(self, crawler, bucket):
-        self.AWS_ACCESS_KEY_ID = crawler.settings.get(
-            'ADDONS_AWS_ACCESS_KEY_ID')
-        self.AWS_SECRET_ACCESS_KEY = crawler.settings.get(
-            'ADDONS_AWS_SECRET_ACCESS_KEY')
+        aws_secret_access_key = settings.get('ADDONS_AWS_SECRET_ACCESS_KEY')
+        if aws_secret_access_key is None:
+            raise NotConfigured("ADDONS_AWS_SECRET_ACCESS_KEY is required")
+
+        return cls(crawler, bucket, aws_access_key_id, aws_secret_access_key)
+
+    def __init__(self, crawler, bucket, aws_access_key_id, aws_secret_access_key):
         self._bucket = bucket
+        self.AWS_ACCESS_KEY_ID = aws_access_key_id
+        self.AWS_SECRET_ACCESS_KEY = aws_secret_access_key
+
         self._aws_username = crawler.settings.get('ADDONS_AWS_USERNAME')
         self._projectid = os.environ.get('SCRAPY_PROJECT_ID')
         self._spider = os.environ.get('SCRAPY_SPIDER', crawler.spider.name)
