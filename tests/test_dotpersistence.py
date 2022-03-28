@@ -25,6 +25,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
             'ADDONS_AWS_ACCESS_KEY_ID': 'access-key',
             'ADDONS_AWS_SECRET_ACCESS_KEY': 'secret-key',
             'ADDONS_AWS_USERNAME': 'test-user',
+            'AWS_SESSION_TOKEN': 'test-token'
         })
         os.environ.update({
             'SCRAPY_JOB': '123/45/67',
@@ -47,6 +48,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
         crawler_mock.settings.set('ADDONS_S3_BUCKET', 's3-test-bucket')
         crawler_mock.settings.set('ADDONS_AWS_ACCESS_KEY_ID', 's3-acess-key')
         crawler_mock.settings.set('ADDONS_AWS_SECRET_ACCESS_KEY', 's3-secret-key')
+        crawler_mock.settings.set('ADDONS_AWS_SESSION_TOKEN', 'test-token')
         instance = DotScrapyPersistence.from_crawler(crawler_mock)
         assert isinstance(instance, DotScrapyPersistence)
 
@@ -61,6 +63,7 @@ class DotScrapyPersisitenceTestCase(TestCase):
             'PATH': os.environ['PATH'],
             'AWS_ACCESS_KEY_ID': 'access-key',
             'AWS_SECRET_ACCESS_KEY': 'secret-key',
+            'AWS_SESSION_TOKEN': 'test-token'
         }
         # short checks that init called _load_data
         self.assertEqual(
@@ -105,7 +108,8 @@ class DotScrapyPersisitenceTestCase(TestCase):
             env={'HOME': '/home/user',
                  'PATH': os.environ['PATH'],
                  'AWS_ACCESS_KEY_ID': 'access-key',
-                 'AWS_SECRET_ACCESS_KEY': 'secret-key'})
+                 'AWS_SECRET_ACCESS_KEY': 'secret-key',
+                 'AWS_SESSION_TOKEN': 'test-token'})
         self.mocked_proc.communicate.assert_called_with()
         self.mocked_proc.wait.assert_called_with()
 

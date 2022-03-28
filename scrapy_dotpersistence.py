@@ -30,12 +30,15 @@ class DotScrapyPersistence(object):
         if aws_secret_access_key is None:
             raise NotConfigured("ADDONS_AWS_SECRET_ACCESS_KEY is required")
 
-        return cls(crawler, bucket, aws_access_key_id, aws_secret_access_key)
+        aws_session_token = settings.get("AWS_SESSION_TOKEN")
 
-    def __init__(self, crawler, bucket, aws_access_key_id, aws_secret_access_key):
+        return cls(crawler, bucket, aws_access_key_id, aws_secret_access_key, aws_session_token)
+
+    def __init__(self, crawler, bucket, aws_access_key_id, aws_secret_access_key, aws_session_token):
         self._bucket = bucket
         self.AWS_ACCESS_KEY_ID = aws_access_key_id
         self.AWS_SECRET_ACCESS_KEY = aws_secret_access_key
+        self.AWS_SESSION_TOKEN = aws_session_token
 
         self._aws_username = crawler.settings.get('ADDONS_AWS_USERNAME')
         self._projectid = os.environ.get('SCRAPY_PROJECT_ID')
@@ -46,7 +49,8 @@ class DotScrapyPersistence(object):
             'HOME': os.getenv('HOME'),
             'PATH': os.getenv('PATH'),
             'AWS_ACCESS_KEY_ID': self.AWS_ACCESS_KEY_ID,
-            'AWS_SECRET_ACCESS_KEY': self.AWS_SECRET_ACCESS_KEY
+            'AWS_SECRET_ACCESS_KEY': self.AWS_SECRET_ACCESS_KEY,
+            'AWS_SESSION_TOKEN': self.AWS_SESSION_TOKEN
         }
         self._load_data()
         crawler.signals.connect(self._store_data, signals.engine_stopped)
